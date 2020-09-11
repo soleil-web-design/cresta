@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>クリスタ</title>
+    <link rel="stylesheet" href="css/style.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+</head>
+
+<body>
+    <header id="header" class="header">
+        <section class="header-inner">
+            <div class="header-logo">
+                <p>クリ★スタ</p>
+            </div>
+            <div class="header-nav">
+                <nav>
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Service</a></li>
+                        <li><a href="#">Contacts</a></li>
+                    </ul>
+                </nav>
+            </div>
+        </section>
+
+        <section id="navArea" class="hamburger">
+            <nav class="nav">
+                <div class="hamburger-inner">
+                    <ul>
+                        <li><a href="#">About</a></li>
+                        <li><a href="#">Service</a></li>
+                        <li><a href="#">News</a></li>
+                        <li><a href="#">Contacts</a></li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="hamburger-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+
+        </section>
+            
+            <div id="navArea02" class="header-ttl_img">
+                <section class="header-ttl">
+                    <h1>Cresta Design</h1>
+                </section>
+            </div>
+
+    </header>
+    <main class="main">
+        <section class="main-about">
+            <h2>About</h2>
+            <h3>ミニマルで<br>洗練されたデザインを。</h3>
+            <p>近年、ミニマルなデザインが流行しています。そこで弊社では、クライアント企業様新規サービス等の課題に対してミニマルで洗練されたデザインを実現させることで解決のサポートを致します。もちろん全てのサービスにおいてミニマルなデザインが課題解決になるわけではないので、課題や今後のサービスの展開等しっかりとヒアリングを行なった上でご提案させて頂きます。
+            </p>
+        </section>
+        <section class="main-service">
+            <h2>Service</h2>
+            <section class="main-service_branding">
+                <figure class="camera">
+                    <img src="img/service-image@2x.jpg" alt="">
+                </figure>
+                <div class="main-service_branding-contents">
+                    <h3>リリース時のサポートで<br>サービスのブランディングを</h3>
+                    <p>弊社では、リリース時もサポートさせて頂きます。プレスリリース用のサイトや動画制作を通して、サービスのブランディングを行わせて頂きます。</p>
+                </div>
+            </section>
+            <section class="main-service_support">
+                <div class="main-service_support-contents">
+                    <h3>リリース後のサポートで<br>効果を最大化させる</h3>
+                    <p>弊社では、リリース後もサポートさせて頂きます。サービスはリリース後に様々な課題にぶつかります。そこでクライアント様と一緒に改善を行うことで、デザインの効果を最大化させます。</p>
+                </div>
+                <firure class="support">
+                    <img src="img/service-image02@2x.jpg" alt="">
+                </firure>
+            </section>
+        </section>
+        <section class="main-news">
+            <h2>News</h2>
+            <div class="main-news_inner">
+                <div class="news01">
+                    <img src="img/card-image1@2x.jpg" alt="">
+                    <p>新規サイトを公開しました。今回のサイトは白と黒を基調にしたミニマルなデザインになっています。</p>
+                </div>
+                <div class="news02">
+                    <img src="img/card-image2@2x.jpg" alt="">
+                    <p>新規サイトを公開しました。今回のサイトは白と黒を基調にしたミニマルなデザインになっています。</p>
+                </div>
+                <div class="news03">
+                    <img src="img/card-image3@2x.jpg" alt="">
+                    <p>新規サイトを公開しました。今回のサイトは白と黒を基調にしたミニマルなデザインになっています。</p>
+                </div>
+            </div>
+        </section>
+        <section class="main-contact">
+            <h2>お問い合わせ</h2>
+            <form action="" method="POST">
+                <label for="name">担当者名</label>
+                <input type="text" name="name" id="name">
+                <label for="tel">電話番号</label>
+                <input type="tel" name="tel" id="tel">
+                <label for="email">メールアドレス</label>
+                <input type="email" name="email" id="email">
+                <label for="contact">お問い合わせ</label>
+                <textarea name="contact" id="contact" cols="30" rows="10"></textarea>
+                <div class="button">
+                    <button type="button">送信</button>
+                </div>
+            </form>
+        </section>
+    </main>
+    <footer class="footer">
+        <p>©︎crest.design all rights reserved</p>
+    </footer>
+    <script>
+        (function ($) {
+            var $nav = $('#navArea');
+            var $header = $('#header');
+            var $btn = $('.hamburger-btn');
+            // var $mask = $('#mask');
+            var open = 'open'; // class
+            // menu open close
+            $btn.on('click', function () {
+                if (!$nav.hasClass(open)) {
+                    $nav.addClass(open);
+                    $('.header').css({"background-color": "#1B1310", "transition": ".5s"});
+                    $('.hamburger').css('background-image', 'none');
+                    $('.header-ttl, .header-inner').css('display', 'none');
+                    $('.hamburger-inner ul').css({'display': 'flex', 'flex-direction': 'column', 'justify-content': 'center'});
+                } else {
+                    $nav.removeClass(open);
+                    $('.header').css("background-color", "none");
+                    $('.hamburger').css('background-image', 'url(img/fv-bgi_sp@2x.jpg)');
+                    $('.header-ttl').css('display', 'block');
+                    $('.header-inner').css('display', 'flex');
+                }
+            });
+        })(jQuery);
+        // $(".hamburger-btn").click(function(){
+        //     if ($(".hamburger-ttl").hasClass(open)) {
+        //         $(".hamburger").css({"background-image": "none", "background-color": "#1B1310"});
+        //     } else {
+
+        //     }
+        // });
+    </script>
+
+</body>
+
+</html>
