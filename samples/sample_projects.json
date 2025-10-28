@@ -1,0 +1,35 @@
+{
+  "unit_price_master": "samples/unit_prices.csv",
+  "tax_rate": 0.1,
+  "output_root": "outputs/sample_runs",
+  "retry": {
+    "max_attempts": 3,
+    "delay_seconds": 1
+  },
+  "projects": [
+    {
+      "name": "sample_a",
+      "template": "samples/projects/sample_a/template.csv",
+      "memo": "samples/projects/sample_a/memo.json",
+      "output_subdir": "sample_a",
+      "pdf_name": "sample_a_estimate.pdf",
+      "email_name": "sample_a_email.txt"
+    },
+    {
+      "name": "sample_b",
+      "template": "samples/projects/sample_b/template.csv",
+      "memo": "samples/projects/sample_b/memo.json",
+      "output_subdir": "sample_b",
+      "pdf_name": "sample_b_estimate.pdf",
+      "email_name": "sample_b_email.txt"
+    },
+    {
+      "name": "sample_c",
+      "template": "samples/projects/sample_c/template.csv",
+      "memo": "samples/projects/sample_c/memo.json",
+      "output_subdir": "sample_c",
+      "pdf_name": "sample_c_estimate.pdf",
+      "email_name": "sample_c_email.txt"
+    }
+  ]
+}

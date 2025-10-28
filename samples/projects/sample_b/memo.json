@@ -1,0 +1,26 @@
+{
+  "project_name": "サンプル案件B 店舗内装",
+  "client_name": "株式会社ベータ",
+  "location": "神奈川県横浜市中区1-2-3",
+  "issue_date": "2024-03-05",
+  "due_date": "2024-04-05",
+  "invoice_registration_number": "T1098765432100",
+  "contact": {
+    "company": "株式会社Cresta",
+    "person": "佐藤花子",
+    "email": "hanako.sato@example.com",
+    "phone": "045-987-6543"
+  },
+  "notes": [
+    "夜間作業含む",
+    "駐車場代は実費精算"
+  ],
+  "adjustments": [
+    {"description": "夜間対応追加費用", "amount": 25000},
+    {"description": "既存什器撤去", "amount": 18000}
+  ],
+  "email": {
+    "to": ["purchasing@beta.co.jp"],
+    "subject": "サンプル案件B 店舗内装 御見積送付の件"
+  }
+}

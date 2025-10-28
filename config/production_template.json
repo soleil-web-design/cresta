@@ -1,0 +1,16 @@
+{
+  "unit_price_master": "path/to/your/unit_prices.csv",
+  "tax_rate": 0.1,
+  "output_root": "outputs/production",
+  "retry": {
+    "max_attempts": 3,
+    "delay_seconds": 2
+  },
+  "projects": [
+    {
+      "name": "project_identifier",
+      "template": "path/to/exported_template.csv",
+      "memo": "path/to/memo.json"
+    }
+  ]
+}
