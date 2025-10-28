@@ -1,0 +1,21 @@
+{
+  "project_name": "サンプル案件C ショールーム改装",
+  "client_name": "株式会社ガンマ",
+  "location": "千葉県千葉市中央区5-6-7",
+  "issue_date": "2024-03-10",
+  "due_date": "2024-04-15",
+  "invoice_registration_number": "T2045678901234",
+  "contact": {
+    "company": "株式会社Cresta",
+    "person": "高橋一郎",
+    "email": "ichiro.takahashi@example.com"
+  },
+  "notes": [
+    "ショールーム営業時間外での作業を想定",
+    "搬入口制限あり"
+  ],
+  "adjustments": [
+    {"description": "搬入口段差養生", "amount": 6000},
+    {"description": "追加清掃費", "amount": 8000}
+  ]
+}

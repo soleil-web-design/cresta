@@ -1,0 +1,27 @@
+{
+  "project_name": "サンプル案件A オフィス改修",
+  "client_name": "株式会社アルファ",
+  "location": "東京都港区北青山1-1-1",
+  "issue_date": "2024-03-01",
+  "due_date": "2024-03-31",
+  "invoice_registration_number": "T1234567890123",
+  "contact": {
+    "company": "株式会社Cresta",
+    "person": "山田太郎",
+    "email": "taro.yamada@example.com",
+    "phone": "03-1234-5678"
+  },
+  "notes": [
+    "施工期間は2週間を想定",
+    "夜間工事は含まない"
+  ],
+  "adjustments": [
+    {"description": "什器搬入調整", "amount": 12000}
+  ],
+  "email": {
+    "to": ["procurement@alpha.co.jp"],
+    "cc": ["project.team@example.com"],
+    "subject": "【御見積送付】サンプル案件A オフィス改修",
+    "body_template": "{client_name} {contact_person} 様\\n\\nサンプル案件Aの御見積書をお送りいたします。税込合計は{total_with_tax}です。\\nご査収のほどよろしくお願いいたします。"
+  }
+}
