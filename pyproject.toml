@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=65", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "estimate-automation"
+version = "0.2.0"
+description = "Automation tools for generating Japanese interior construction estimates"
+readme = "README.md"
+authors = [{name = "Cresta"}]
+requires-python = ">=3.10"
+dependencies = []
+
+[project.scripts]
+estimate-automation = "estimate_automation.cli:main"
+estimate-automation-web = "estimate_automation.web.app:start"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["estimate_automation*"]

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>内装見積 自動化ポータル</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <header class="hero">
+        <div class="hero__content">
+            <h1>内装見積自動化ツール</h1>
+            <p>Numbers雛形・単価マスタCSV・現場メモJSONをアップロードすると、インボイス対応済みの見積PDFとメール下書きをまとめてダウンロードできます。</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <section class="card">
+            <h2>ファイルをアップロード</h2>
+            <form class="upload-form" action="/api/estimates" method="post" enctype="multipart/form-data" target="_blank">
+{{API_KEY_FIELD}}
+                <label class="field">
+                    <span>単価マスタCSV</span>
+                    <input type="file" name="unit_price_master" accept=".csv" required>
+                </label>
+                <label class="field">
+                    <span>見積テンプレートCSV</span>
+                    <input type="file" name="template" accept=".csv" required>
+                </label>
+                <label class="field">
+                    <span>現場メモJSON</span>
+                    <input type="file" name="memo" accept=".json" required>
+                </label>
+                <label class="field">
+                    <span>税率 (省略時は {{DEFAULT_TAX_RATE}} )</span>
+                    <input type="text" name="tax_rate" placeholder="例: 0.1">
+                </label>
+                <p class="hint">送信するとZIPファイルがダウンロードされます（見積PDF・メール下書きを同梱）。</p>
+                <button type="submit" class="button">見積を生成する</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h2>運用ガイドライン</h2>
+            <ul>
+                <li>ファイルは処理後すぐに破棄され、サーバーには保存されません。</li>
+                <li>API経由で自動化する場合は <code>POST /api/estimates</code> に同じフォームパラメータを送信してください。</li>
+                <li>ヘルスチェック用エンドポイント: <code>GET /healthz</code>。</li>
+                <li>CI/CD では本番用APIキーを環境変数 <code>ESTIMATE_AUTOMATION_API_KEY</code> に設定してください。</li>
+            </ul>
+        </section>
+
+        <section class="card">
+            <h2>サンプルデータ</h2>
+            <p><code>samples/</code> ディレクトリに3案件分のCSV/JSONが含まれています。動作確認にご活用ください。</p>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <small>© {{CURRENT_YEAR}} Cresta Automation</small>
+    </footer>
+</body>
+</html>

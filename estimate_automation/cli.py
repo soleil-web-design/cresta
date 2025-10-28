@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import logging
 import time
 from decimal import Decimal
 from pathlib import Path
@@ -9,6 +10,8 @@ from typing import Any, Dict
 
 from .email import build_email_draft
 from .estimate import build_estimate
+from .exceptions import EstimateAutomationError
+from .logging import configure_logging
 from .parser import load_project_memo, load_template, load_unit_price_master
 from .pdf import generate_pdf
 
@@ -25,6 +28,9 @@ def load_config(path: Path) -> Dict[str, Any]:
 
 
 def main() -> None:
+    configure_logging()
+    logger = logging.getLogger("estimate_automation.cli")
+
     args = parse_args()
     config = load_config(args.config)
 
@@ -59,13 +65,19 @@ def main() -> None:
                 estimate = build_estimate(items, memo, tax_rate)
                 generate_pdf(estimate, output_dir / pdf_name)
                 build_email_draft(estimate, output_dir / email_name)
-                print(f"[OK] {project_name} -> {output_dir}")
+                logger.info("%s -> %s", project_name, output_dir)
                 break
-            except Exception as exc:  # pylint: disable=broad-exception-caught
-                print(f"[ERROR] {project_name} attempt {attempts}: {exc}")
+            except EstimateAutomationError as exc:
+                logger.error("Validation error for %s (attempt %s): %s", project_name, attempts, exc)
+                if attempts >= max_attempts:
+                    raise
+            except Exception as exc:  # pragma: no cover - catch-all for unexpected errors
+                logger.exception("Unexpected failure for %s (attempt %s)", project_name, attempts)
                 if attempts >= max_attempts:
                     raise
                 time.sleep(delay_seconds)
+                continue
+            time.sleep(delay_seconds)
 
 
 if __name__ == "__main__":

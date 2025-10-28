@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import List
 
 from .models import EstimateResult
-
 
 DEFAULT_SUBJECT_TEMPLATE = "【御見積書送付】{project_name}"
 DEFAULT_BODY_TEMPLATE = (
@@ -17,12 +15,12 @@ DEFAULT_BODY_TEMPLATE = (
 )
 
 
-def build_email_draft(estimate: EstimateResult, output_path: Path) -> None:
+def render_email_draft(estimate: EstimateResult) -> str:
     memo = estimate.memo
     email_settings = memo.email
 
-    to_addresses: List[str] = email_settings.to if email_settings and email_settings.to else [memo.contact.email]
-    cc_addresses: List[str] = email_settings.cc if email_settings else []
+    to_addresses = email_settings.to if email_settings and email_settings.to else [memo.contact.email]
+    cc_addresses = email_settings.cc if email_settings else []
     subject_template = email_settings.subject if email_settings and email_settings.subject else DEFAULT_SUBJECT_TEMPLATE
     body_template = email_settings.body_template if email_settings and email_settings.body_template else DEFAULT_BODY_TEMPLATE
 
@@ -42,7 +40,7 @@ def build_email_draft(estimate: EstimateResult, output_path: Path) -> None:
     body = body_template.format(**context)
 
     lines = [
-        f"To: {', '.join(to_addresses)}",
+        f"To: {', '.join(filter(None, to_addresses))}",
         f"Cc: {', '.join(cc_addresses) if cc_addresses else '-'}",
         f"Subject: {subject}",
         "",
@@ -52,6 +50,9 @@ def build_email_draft(estimate: EstimateResult, output_path: Path) -> None:
         f"発行日: {memo.issue_date}",
         f"適格請求書発行事業者登録番号: {memo.invoice_registration_number}",
     ]
+    return "\n".join(lines) + "\n"
 
+
+def build_email_draft(estimate: EstimateResult, output_path: Path) -> None:
     output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    output_path.write_text(render_email_draft(estimate), encoding="utf-8")

@@ -2,122 +2,157 @@ from __future__ import annotations
 
 from decimal import Decimal
 from pathlib import Path
-from typing import List
+from typing import List, Tuple
 
 from .models import EstimateResult
 
-LINE_HEIGHT = 18
-TOP_MARGIN = 780
-LEFT_MARGIN = 50
-FONT_SIZE = 12
-MAX_LINES_PER_PAGE = 40
-PAGE_HEIGHT = 842
 PAGE_WIDTH = 595
-MIN_BOTTOM_MARGIN = 40
+PAGE_HEIGHT = 842
+LEFT_MARGIN = 50
+RIGHT_MARGIN = 50
+TOP_MARGIN = 780
+LINE_HEIGHT = 18
+MIN_BOTTOM_MARGIN = 50
+TITLE_FONT_SIZE = 18
+BODY_FONT_SIZE = 12
+SMALL_FONT_SIZE = 11
+
+Command = Tuple[str, Tuple]
 
 
 def generate_pdf(estimate: EstimateResult, output_path: Path) -> None:
-    pages: List[List[str]] = []
-    current: List[str] = []
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_path.write_bytes(render_pdf_bytes(estimate))
 
-    def add_line(text: str) -> None:
-        nonlocal current
-        if len(current) >= MAX_LINES_PER_PAGE:
+
+def render_pdf_bytes(estimate: EstimateResult) -> bytes:
+    pages: List[List[Command]] = []
+    current: List[Command] = []
+    y_position = TOP_MARGIN
+
+    def flush_page() -> None:
+        nonlocal current, y_position
+        if current:
             pages.append(current)
-            current = []
-        current.append(text)
+        current = []
+        y_position = TOP_MARGIN
 
-    add_line(f"見積書: {estimate.memo.project_name}")
-    add_line(f"発行日: {estimate.memo.issue_date}")
-    add_line(f"納期: {estimate.memo.due_date}")
-    add_line(f"宛先: {estimate.memo.client_name}")
-    add_line(f"現場所在地: {estimate.memo.location}")
-    add_line("")
-    add_line("【明細】")
-    add_line("品名 / 数量 / 単価 / 小計")
+    def ensure_space(lines: int = 1) -> None:
+        nonlocal y_position
+        if y_position - LINE_HEIGHT * lines < MIN_BOTTOM_MARGIN:
+            flush_page()
 
+    def add_text(text: str, font_size: int = BODY_FONT_SIZE, offset: int = 0) -> None:
+        nonlocal y_position
+        ensure_space(1)
+        current.append(("text", (LEFT_MARGIN + offset, y_position, font_size, text)))
+        y_position -= LINE_HEIGHT
+
+    def add_separator() -> None:
+        nonlocal y_position
+        current.append(("line", (LEFT_MARGIN, y_position + 6, PAGE_WIDTH - RIGHT_MARGIN, y_position + 6)))
+        y_position -= 4
+
+    def add_blank() -> None:
+        nonlocal y_position
+        y_position -= LINE_HEIGHT
+
+    memo = estimate.memo
+
+    add_text("御見積書", TITLE_FONT_SIZE)
+    add_blank()
+
+    header_rows = [
+        ("案件名", memo.project_name),
+        ("発行日", memo.issue_date),
+        ("納期", memo.due_date),
+        ("宛先", memo.client_name),
+        ("現場所在地", memo.location),
+        ("登録番号", memo.invoice_registration_number),
+        ("担当", f"{memo.contact.company} {memo.contact.person}"),
+    ]
+
+    for label, value in header_rows:
+        add_text(f"{label}: {value}", font_size=SMALL_FONT_SIZE)
+    add_separator()
+
+    add_text("【明細】", font_size=SMALL_FONT_SIZE)
     for item in estimate.items:
-        add_line(
-            f"- {item.name} / {format_decimal(item.quantity)}{item.unit} / {format_currency(item.unit_price)} / {format_currency(item.subtotal)}"
+        add_text(item.name, font_size=SMALL_FONT_SIZE)
+        add_text(
+            f"    数量: {format_decimal(item.quantity)}{item.unit} / 単価: {format_currency(item.unit_price)} / 小計: {format_currency(item.subtotal)}",
+            font_size=SMALL_FONT_SIZE,
         )
+        add_blank()
 
-    if estimate.memo.adjustments:
-        add_line("")
-        add_line("【調整項目】")
-        for adj in estimate.memo.adjustments:
-            add_line(f"- {adj.description}: {format_currency(adj.amount)}")
+    if memo.adjustments:
+        add_separator()
+        add_text("【調整項目】", font_size=SMALL_FONT_SIZE)
+        for adj in memo.adjustments:
+            add_text(f"- {adj.description}: {format_currency(adj.amount)}", font_size=SMALL_FONT_SIZE)
+        add_blank()
 
-    if estimate.memo.notes:
-        add_line("")
-        add_line("【特記事項】")
-        for note in estimate.memo.notes:
-            add_line(f"- {note}")
+    if memo.notes:
+        add_separator()
+        add_text("【特記事項】", font_size=SMALL_FONT_SIZE)
+        for note in memo.notes:
+            add_text(f"- {note}", font_size=SMALL_FONT_SIZE)
+        add_blank()
 
-    add_line("")
-    add_line(f"税別小計: {format_currency(estimate.subtotal)}")
-    add_line(f"調整計: {format_currency(estimate.adjustments_total)}")
-    add_line(f"税別合計 (四捨五入後): {format_currency(estimate.tax_exclusive_total)}")
-    add_line(
-        f"消費税 ({(estimate.tax_rate * Decimal('100')).quantize(Decimal('1'))}%): {format_currency(estimate.tax_amount)}"
+    add_separator()
+    add_text(f"税別小計: {format_currency(estimate.subtotal)}", font_size=BODY_FONT_SIZE)
+    add_text(f"調整計: {format_currency(estimate.adjustments_total)}", font_size=BODY_FONT_SIZE)
+    add_text(f"税別合計 (四捨五入): {format_currency(estimate.tax_exclusive_total)}", font_size=BODY_FONT_SIZE)
+    add_text(
+        f"消費税 ({(estimate.tax_rate * Decimal('100')).quantize(Decimal('1'))}%): {format_currency(estimate.tax_amount)}",
+        font_size=BODY_FONT_SIZE,
     )
-    add_line(f"税込合計 (切り上げ後): {format_currency(estimate.tax_inclusive_total)}")
-    add_line("")
-    add_line("適格請求書発行事業者登録番号")
-    add_line(f"{estimate.memo.invoice_registration_number}")
+    add_text(f"税込合計 (切り上げ): {format_currency(estimate.tax_inclusive_total)}", font_size=BODY_FONT_SIZE)
 
-    add_line("")
-    add_line("連絡先")
-    add_line(f"{estimate.memo.contact.company} {estimate.memo.contact.person}")
-    add_line(f"Email: {estimate.memo.contact.email}")
-    if estimate.memo.contact.phone:
-        add_line(f"Tel: {estimate.memo.contact.phone}")
+    add_blank()
+    add_text(f"連絡先 Email: {memo.contact.email}", font_size=SMALL_FONT_SIZE)
+    if memo.contact.phone:
+        add_text(f"Tel: {memo.contact.phone}", font_size=SMALL_FONT_SIZE)
 
     if current:
         pages.append(current)
 
-    pdf_bytes = _build_pdf_from_pages(pages)
-    output_path.parent.mkdir(parents=True, exist_ok=True)
-    output_path.write_bytes(pdf_bytes)
+    return _build_pdf(pages)
 
 
-def _build_pdf_from_pages(pages: List[List[str]]) -> bytes:
-    objects: List[bytearray] = []
+def _build_pdf(pages: List[List[Command]]) -> bytes:
+    objects: List[bytes] = []
 
-    def add_object(content: str | bytes) -> int:
-        if isinstance(content, str):
-            content_bytes = content.encode("utf-8")
-        else:
-            content_bytes = content
-        objects.append(bytearray(content_bytes))
+    def add_object(content: bytes) -> int:
+        objects.append(content)
         return len(objects)
 
-    font_obj = add_object("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
+    font_obj = add_object(b"<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>")
 
     page_refs: List[int] = []
     content_refs: List[int] = []
 
-    for page_lines in pages:
-        stream_commands = []
-        y = TOP_MARGIN
-        for line in page_lines:
-            sanitized = (
-                line.replace("\\", r"\\")
-                .replace("(", r"\(")
-                .replace(")", r"\)")
-            )
-            stream_commands.append(f"BT /F1 {FONT_SIZE} Tf {LEFT_MARGIN} {y} Td ({sanitized}) Tj ET")
-            y -= LINE_HEIGHT
-            if y < MIN_BOTTOM_MARGIN:
-                y = TOP_MARGIN
-        stream_text = "\n".join(stream_commands)
-        stream_bytes = stream_text.encode("utf-8")
-        content_ref = add_object(b"")
-        content_stream = bytearray()
-        content_stream.extend(f"<< /Length {len(stream_bytes)} >>\nstream\n".encode("utf-8"))
-        content_stream.extend(stream_bytes)
-        content_stream.extend(b"\nendstream")
-        objects[content_ref - 1] = content_stream
-        content_refs.append(content_ref)
+    for page in pages:
+        stream_commands: List[str] = []
+        line_width_set = False
+        for command, payload in page:
+            if command == "text":
+                x, y, font_size, text = payload
+                stream_commands.append(f"BT /F1 {font_size} Tf {x} {y} Td ({_escape(text)}) Tj ET")
+            elif command == "line":
+                x1, y1, x2, y2 = payload
+                if not line_width_set:
+                    stream_commands.append("0.5 w")
+                    line_width_set = True
+                stream_commands.append(f"{x1} {y1} m {x2} {y2} l S")
+        stream = "\n".join(stream_commands).encode("utf-8")
+        content_obj = add_object(b"")
+        stream_buffer = bytearray()
+        stream_buffer.extend(f"<< /Length {len(stream)} >>\nstream\n".encode("utf-8"))
+        stream_buffer.extend(stream)
+        stream_buffer.extend(b"\nendstream")
+        objects[content_obj - 1] = bytes(stream_buffer)
+        content_refs.append(content_obj)
         page_ref = add_object(b"")
         page_refs.append(page_ref)
 
@@ -129,19 +164,19 @@ def _build_pdf_from_pages(pages: List[List[str]]) -> bytes:
             f"<< /Type /Page /Parent {pages_obj} 0 R /MediaBox [0 0 {PAGE_WIDTH} {PAGE_HEIGHT}] "
             f"/Resources << /Font << /F1 {font_obj} 0 R >> >> /Contents {content_ref} 0 R >>"
         )
-        objects[page_ref - 1] = bytearray(page_dict.encode("utf-8"))
+        objects[page_ref - 1] = page_dict.encode("utf-8")
 
     kids = "[" + " ".join(f"{ref} 0 R" for ref in page_refs) + "]"
     pages_dict = f"<< /Type /Pages /Kids {kids} /Count {len(page_refs)} >>"
-    objects[pages_obj - 1] = bytearray(pages_dict.encode("utf-8"))
+    objects[pages_obj - 1] = pages_dict.encode("utf-8")
 
     catalog_dict = f"<< /Type /Catalog /Pages {pages_obj} 0 R >>"
-    objects[catalog_obj - 1] = bytearray(catalog_dict.encode("utf-8"))
+    objects[catalog_obj - 1] = catalog_dict.encode("utf-8")
 
     return _assemble_pdf(objects, catalog_obj)
 
 
-def _assemble_pdf(objects: List[bytearray], catalog_obj: int) -> bytes:
+def _assemble_pdf(objects: List[bytes], catalog_obj: int) -> bytes:
     buffer = bytearray()
     buffer.extend(b"%PDF-1.4\n")
     offsets = [0]
@@ -162,13 +197,15 @@ def _assemble_pdf(objects: List[bytearray], catalog_obj: int) -> bytes:
     return bytes(buffer)
 
 
+def _escape(text: str) -> str:
+    return text.replace("\\", r"\\").replace("(", r"\(").replace(")", r"\)")
+
+
 def format_currency(value: Decimal) -> str:
     quantized = value.quantize(Decimal("1")) if value == value.to_integral_value() else value
     absolute = abs(quantized)
     formatted = (
-        f"{absolute:,}"
-        if absolute == absolute.to_integral_value()
-        else format(absolute, ",.2f")
+        f"{absolute:,}" if absolute == absolute.to_integral_value() else format(absolute, ",.2f")
     )
     prefix = "-" if quantized < 0 else ""
     return f"{prefix}¥{formatted}"
